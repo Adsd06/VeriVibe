@@ -2,6 +2,8 @@
 
 VeriVibe is a Streamlit-based security application that provides automated code vulnerability scanning and intelligent mentorship. It combines deterministic local regex guardrails with high-speed, LLM-driven deep analysis to help developers understand and remediate security risks.
 
+**🚀 Live Demo:** [Test VeriVibe Instantly](https://verivibe.streamlit.app)
+
 ## Key Features
 * **Multi-Stage Security Scanning:** Fast local AST regex checks for immediate flaw detection.
 * **AI-Powered Mentorship:** Deep context analysis using Groq (Llama 3) to break down vulnerabilities in plain language.
