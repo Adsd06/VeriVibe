@@ -145,7 +145,7 @@ with st.sidebar:
     st.markdown("""
     <p style='color: #666666; font-size: 0.8rem; line-height: 1.4;'>
     <b>Stage 1:</b> Local Regex Guardrail<br>
-    <b>Stage 2:</b> Gemini 2.5 Flash Neural Mentorship
+    <b>Stage 2:</b> GPT-OSS-120B Neural Mentorship
     </p>
     """, unsafe_allow_html=True)
 
@@ -195,18 +195,46 @@ with col2:
             time.sleep(1.2)  # Smooth transition for animation
             mentorship_response = get_mentorship_feedback(code, violations)
             
+            # Parse out the AI status tag
+            ai_status = "CLEAN"
+            clean_response = mentorship_response
+            if "STATUS:" in mentorship_response:
+                lines = mentorship_response.split("\n", 1)
+                status_line = lines[0].strip()
+                if "CRITICAL" in status_line:
+                    ai_status = "CRITICAL"
+                elif "HIGH_RISK" in status_line:
+                    ai_status = "HIGH_RISK"
+                elif "WARNING" in status_line:
+                    ai_status = "WARNING"
+                else:
+                    ai_status = "CLEAN"
+                
+                if len(lines) > 1:
+                    clean_response = lines[1].strip()
+
             feedback_container.empty()
             
             with feedback_container.container():
-                status_class = "status-error" if violations else "status-success"
-                status_text = f"⚠️ {len(violations)} High-Risk Pattern(s) Flagged Locally" if status_class == "status-error" else "✨ Local Pre-Filter: Clean Baseline"
+                if ai_status == "CRITICAL":
+                    status_class = "status-error"
+                    status_text = "🚨 CRITICAL: Severe Security Vulnerability Detected"
+                elif ai_status == "HIGH_RISK":
+                    status_class = "status-error"
+                    status_text = "⚠️ HIGH RISK: Vulnerability Pattern Identified by AI"
+                elif ai_status == "WARNING":
+                    status_class = "status-error"
+                    status_text = "⚡ WARNING: Potential Security Code Smell"
+                else:
+                    status_class = "status-success"
+                    status_text = "✨ AI Mentor: Clean Baseline Verified"
                 
                 st.markdown(f"""
                 <div class='glass-card'>
                     <div><span class='{status_class}'>{status_text}</span></div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown(mentorship_response)
+                st.markdown(clean_response)
                 st.markdown("</div>", unsafe_allow_html=True)
     else:
         feedback_container.markdown("""

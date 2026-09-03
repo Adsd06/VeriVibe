@@ -44,7 +44,7 @@ def get_api_keys():
 
 def get_mentorship_feedback(code_snippet: str, regex_violations: list) -> str:
     """
-    Queries Groq's API using active production models with multi-key rotation and diagnostics.
+    Queries Groq's API using active production models with multi-key rotation and AI severity classification.
     """
     keys = get_api_keys()
     
@@ -60,7 +60,10 @@ Local Guardrail Scan Results:
 Code Snippet:
 {code_snippet}
 
-Provide your mentorship feedback strictly structured into these four headers:
+Provide your response starting with a single status line formatted exactly as:
+STATUS: [CLEAN | WARNING | HIGH_RISK | CRITICAL]
+
+Followed strictly by these four headers:
 ### 1. Plain-Language Breakdown
 ### 2. Real-World Risk
 ### 3. Remediation Code
@@ -90,8 +93,8 @@ Provide your mentorship feedback strictly structured into these four headers:
                     data = response.json()
                     return data["choices"][0]["message"]["content"]
                 else:
-                    return f"### 1. Plain-Language Breakdown\n**API ERROR ({response.status_code}):**\n`{response.text}`\n\n### 2. Real-World Risk\nThe Groq API rejected the payload.\n### 3. Remediation Code\nN/A\n### 4. Takeaway Rule\nCheck API endpoint formatting."
+                    return f"STATUS: HIGH_RISK\n### 1. Plain-Language Breakdown\n**API ERROR ({response.status_code}):**\n`{response.text}`\n\n### 2. Real-World Risk\nThe Groq API rejected the payload.\n### 3. Remediation Code\nN/A\n### 4. Takeaway Rule\nCheck API endpoint formatting."
             except Exception as e:
-                return f"### 1. Plain-Language Breakdown\n**NETWORK ERROR:**\n`{str(e)}`\n\n### 2. Real-World Risk\nThe request timed out or failed to connect.\n### 3. Remediation Code\nN/A\n### 4. Takeaway Rule\nCheck Streamlit server connectivity."
+                return f"STATUS: HIGH_RISK\n### 1. Plain-Language Breakdown\n**NETWORK ERROR:**\n`{str(e)}`\n\n### 2. Real-World Risk\nThe request timed out or failed to connect.\n### 3. Remediation Code\nN/A\n### 4. Takeaway Rule\nCheck Streamlit server connectivity."
     
-    return "### 1. Plain-Language Breakdown\n**SECRETS ERROR:** No API keys were detected in the environment or Streamlit secrets.\n\n### 2. Real-World Risk\nStreamlit is not parsing your keys correctly.\n### 3. Remediation Code\nEnsure Secrets format is `GROQ_API_KEY = \"gsk_...\"`\n### 4. Takeaway Rule\nKeys must be configured properly in Streamlit dashboard settings."
+    return 'STATUS: HIGH_RISK\n### 1. Plain-Language Breakdown\n**SECRETS ERROR:** No API keys were detected in the environment or Streamlit secrets.\n\n### 2. Real-World Risk\nStreamlit is not parsing your keys correctly.\n### 3. Remediation Code\nEnsure Secrets format is `GROQ_API_KEY = "gsk_..."`\n### 4. Takeaway Rule\nKeys must be configured properly in Streamlit dashboard settings.'
