@@ -1,0 +1,14 @@
+[
+  {
+    "id": "RULE_001",
+    "name": "Hardcoded API Key",
+    "pattern": "(sk_live|api_key|password)\\s*=\\s*['\"][a-zA-Z0-9-_]{16,}['\"]",
+    "risk": "Exposed secrets in source code allow unauthorized backend access and credential leaks[cite: 5, 6]."
+  },
+  {
+    "id": "RULE_002",
+    "name": "SQL Injection Risk",
+    "pattern": "execute\\s*\\(\\s*['\"].*\\+\\s*.*['\"]\\s*\\)",
+    "risk": "Direct string concatenation in database queries enables malicious database manipulation[cite: 5, 6]."
+  }
+]

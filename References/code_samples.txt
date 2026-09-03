@@ -1,0 +1,11 @@
+[VULNERABLE_SQL_INJECTION]
+query = "SELECT * FROM users WHERE username = '" + user_input + "' AND password = '" + password + "'"
+
+[EXPOSED_API_KEY]
+STRIPE_SECRET_KEY = "sk_live_51NxYzFakeKey998877665544"
+
+[SAFE_CONTROL_CODE]
+import sqlite3
+def get_user(cursor, username):
+    cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+    return cursor.fetchone()
