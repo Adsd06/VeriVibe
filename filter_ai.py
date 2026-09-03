@@ -1,5 +1,6 @@
 import os
 import requests
+import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,14 +28,23 @@ def get_system_prompt() -> str:
     return FALLBACK_PROMPT
 
 def get_api_keys():
-    """Parses comma-separated keys from GEMINI_API_KEY or GROQ_API_KEY."""
-    raw_keys = os.environ.get("GEMINI_API_KEY", "") or os.environ.get("GROQ_API_KEY", "")
+    """Parses comma-separated keys from Streamlit secrets or environment variables."""
+    raw_keys = ""
+    try:
+        if hasattr(st, "secrets"):
+            raw_keys = st.secrets.get("GEMINI_API_KEY", "") or st.secrets.get("GROQ_API_KEY", "")
+    except Exception:
+        pass
+    
+    if not raw_keys:
+        raw_keys = os.environ.get("GEMINI_API_KEY", "") or os.environ.get("GROQ_API_KEY", "")
+        
     keys = [k.strip() for k in raw_keys.split(",") if k.strip() and "your_api_key" not in k.lower()]
     return keys
 
 def get_mentorship_feedback(code_snippet: str, regex_violations: list) -> str:
     """
-    Queries Groq's high-speed API with automatic multi-key rotation and instant fallback.
+    Queries Groq's API using active production models with multi-key rotation and diagnostics.
     """
     keys = get_api_keys()
     
@@ -66,7 +76,7 @@ Provide your mentorship feedback strictly structured into these four headers:
                 "Content-Type": "application/json"
             }
             payload = {
-                "model": "llama-3.3-70b-versatile",
+                "model": "openai/gpt-oss-120b",
                 "messages": [
                     {"role": "system", "content": system_instruction},
                     {"role": "user", "content": user_content}
@@ -79,31 +89,9 @@ Provide your mentorship feedback strictly structured into these four headers:
                 if response.status_code == 200:
                     data = response.json()
                     return data["choices"][0]["message"]["content"]
-            except Exception:
-                continue
-
-    # Instant deterministic fallback for hackathon safety if API limits are hit
-    return """### 1. Plain-Language Breakdown
-Your code contains unvalidated string inputs and hardcoded authentication credentials directly inside the source logic. This allows external users or automated scanners to easily extract sensitive keys or manipulate database inputs.
-
-### 2. Real-World Risk
-Leaving credentials hardcoded in your repository creates an immediate backdoor for unauthorized attackers, leading to data leaks, system compromise, or unexpected cloud billing spikes.
-
-### 3. Remediation Code
-```python
-import os
-import sqlite3
-
-# Secure implementation using environment variables and parameterized queries
-API_KEY = os.getenv("SECURE_API_KEY")
-
-def get_user_data(username):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    # Parameterized query prevents SQL injection
-    cursor.execute("SELECT * FROM accounts WHERE user = ?", (username,))
-    return cursor.fetchall()
-```
-
-### 4. Takeaway Rule
-Never hardcode secrets in source code and always use parameterized queries to handle external inputs."""
+                else:
+                    return f"### 1. Plain-Language Breakdown\n**API ERROR ({response.status_code}):**\n`{response.text}`\n\n### 2. Real-World Risk\nThe Groq API rejected the payload.\n### 3. Remediation Code\nN/A\n### 4. Takeaway Rule\nCheck API endpoint formatting."
+            except Exception as e:
+                return f"### 1. Plain-Language Breakdown\n**NETWORK ERROR:**\n`{str(e)}`\n\n### 2. Real-World Risk\nThe request timed out or failed to connect.\n### 3. Remediation Code\nN/A\n### 4. Takeaway Rule\nCheck Streamlit server connectivity."
+    
+    return "### 1. Plain-Language Breakdown\n**SECRETS ERROR:** No API keys were detected in the environment or Streamlit secrets.\n\n### 2. Real-World Risk\nStreamlit is not parsing your keys correctly.\n### 3. Remediation Code\nEnsure Secrets format is `GROQ_API_KEY = \"gsk_...\"`\n### 4. Takeaway Rule\nKeys must be configured properly in Streamlit dashboard settings."
