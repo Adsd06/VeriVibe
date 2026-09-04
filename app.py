@@ -43,42 +43,19 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
-    /* The sidebar toggle control (collapse/expand) is intentionally left
-       unstyled here. It's rendered natively by Streamlit as an icon
-       button, and the only thing that was ever wrong with it was our own
-       CSS overriding the icon font it depends on (fixed in the
-       Typography Override rule below) or, previously, us fighting its
-       internals with padding/background overrides that broke across
-       Streamlit versions. Its default appearance already fits a dark
-       theme fine. */
-
-    /* Typography Override -- excludes anything that looks like an icon
-       element (data-testid starting with "stIcon", or a class containing
-       "material"), since Streamlit's icons are ligatures (e.g. the
-       literal text "keyboard_double_arrow_right") that only render as a
-       glyph when their own Material Symbols font is left alone. Matching
-       by pattern rather than one exact testid guards against Streamlit
-       versions using slightly different internal naming. */
+    /* Typography Override */
     h1, h2, h3, h4, h5, h6, p,
     span:not([data-testid^="stIcon"]):not([class*="material" i]),
     label:not([data-testid^="stIcon"]):not([class*="material" i]) {
         font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
-    /* Safety net: explicitly restore the icon font on anything matching
-       an icon pattern, in case another rule elsewhere still catches it. */
     [data-testid^="stIcon"],
     [class*="material" i] {
         font-family: 'Material Symbols Outlined', 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
     }
 
-    /* Sidebar toggle (collapse/expand) icon -- colored dark so it's
-       readable against the white button background below. Only color is
-       set here; font-family is deliberately left alone (see above).
-       Covers both current ("stSidebarCollapsedControl"/
-       "stSidebarCollapseButton") and legacy ("collapsedControl") testids,
-       since the floating outside-the-sidebar control and the inside one
-       aren't guaranteed to use the same naming. */
+    /* Sidebar toggle controls */
     [data-testid="stSidebarCollapsedControl"] [data-testid^="stIcon"],
     [data-testid="stSidebarCollapseButton"] [data-testid^="stIcon"],
     [data-testid="collapsedControl"] [data-testid^="stIcon"],
@@ -87,10 +64,6 @@ st.markdown("""
         fill: #090D16 !important;
     }
 
-    /* Force the toggle button to always stay visible. By default
-       Streamlit fades this button to opacity 0 and only shows it on
-       hover of the sidebar header -- overriding that so it doesn't
-       disappear when the mouse moves away. */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="stSidebarCollapseButton"],
     [data-testid="collapsedControl"],
@@ -99,20 +72,6 @@ st.markdown("""
     [data-testid="collapsedControl"] button {
         opacity: 1 !important;
         visibility: visible !important;
-    }
-
-    /* Give the toggle button itself a solid white background so it's
-       clearly visible and easy to spot against the dark page. Applied
-       to both the testid element itself and any nested <button>, since
-       different Streamlit versions structure this differently -- in
-       some, the testid element IS the clickable button; in others, it's
-       a wrapper around one. */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"] button,
-    [data-testid="stSidebarCollapseButton"] button,
-    [data-testid="collapsedControl"] button {
         background: #FFFFFF !important;
         border-radius: 8px !important;
     }
@@ -126,9 +85,6 @@ st.markdown("""
         background: #E5E7EB !important;
     }
 
-    /* Fallback: the toggle button is always the leftmost control in the
-       app header. This catches it even if this Streamlit version uses a
-       testid we haven't accounted for above. */
     header[data-testid="stHeader"] button:first-of-type {
         background: #FFFFFF !important;
         border-radius: 8px !important;
@@ -146,19 +102,15 @@ st.markdown("""
         background: #E5E7EB !important;
     }
 
-    /* Hide External Label Above Text Area */
     div[data-testid="stTextArea"] label {
         display: none !important;
     }
 
-    /* Sidebar "Select Test Scenario:" label -- Streamlit's default dim
-       gray is hard to read against the dark sidebar background. */
     section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label,
     section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label p {
         color: #FFFFFF !important;
     }
 
-    /* Text Area & Inside Placeholder Styling */
     textarea {
         font-family: 'JetBrains Mono', monospace !important;
         font-size: 0.88rem !important;
@@ -179,7 +131,6 @@ st.markdown("""
         box-shadow: 0 0 0 1px #6366F1 !important;
     }
 
-    /* SVG Scanning Radar Animation */
     .radar-container {
         position: relative;
         width: 100px;
@@ -209,7 +160,6 @@ st.markdown("""
         to { transform: rotate(360deg); }
     }
 
-    /* Hero Header & Title */
     .app-header {
         padding: 2.5rem 2.5rem;
         background: radial-gradient(100% 100% at 0% 0%, rgba(99, 102, 241, 0.15) 0%, rgba(17, 24, 39, 0.4) 100%);
@@ -250,7 +200,6 @@ st.markdown("""
         line-height: 1.5;
     }
 
-    /* Card Containers */
     .glass-card {
         background: rgba(17, 24, 39, 0.7);
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -268,7 +217,6 @@ st.markdown("""
         border-color: rgba(99, 102, 241, 0.3);
     }
 
-    /* Dynamic Badges */
     .status-badge {
         padding: 8px 16px;
         border-radius: 8px;
@@ -296,7 +244,6 @@ st.markdown("""
         border: 1px solid rgba(16, 185, 129, 0.4);
     }
 
-    /* Metrics Grid Header */
     .metric-container {
         display: flex;
         gap: 12px;
@@ -322,7 +269,6 @@ st.markdown("""
         letter-spacing: 0.05em;
     }
 
-    /* Button Customization */
     .stButton>button {
         background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%) !important;
         color: #FFFFFF !important;
@@ -338,11 +284,6 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5) !important;
     }
 
-    /* Tabs Styling - Force Pure White on Inactive & Active Tabs.
-       Anchored on [role="tab"] / [aria-selected] (standard ARIA
-       attributes guaranteed by any tab implementation) rather than
-       Streamlit-internal naming like "data-baseweb", which may not
-       match the actual markup in this version. */
     .stTabs [role="tablist"] {
         gap: 8px;
     }
@@ -370,7 +311,6 @@ st.markdown("""
         border-color: #6366F1 !important;
     }
 
-    /* Custom Scrollbars */
     ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -471,7 +411,7 @@ with col2:
             time.sleep(1.0)  
             mentorship_response = get_mentorship_feedback(code, violations)
             
-            # Parse AI status tag
+            # Parse AI status tag (separating HIGH_RISK and WARNING accurately)
             ai_status = "CLEAN"
             clean_response = mentorship_response
             if "STATUS:" in mentorship_response:
@@ -479,7 +419,9 @@ with col2:
                 status_line = lines[0].strip()
                 if "CRITICAL" in status_line:
                     ai_status = "CRITICAL"
-                elif "HIGH_RISK" in status_line or "WARNING" in status_line:
+                elif "HIGH_RISK" in status_line:
+                    ai_status = "HIGH_RISK"
+                elif "WARNING" in status_line:
                     ai_status = "WARNING"
                 else:
                     ai_status = "CLEAN"
@@ -493,9 +435,12 @@ with col2:
                 if ai_status == "CRITICAL":
                     status_class = "status-critical"
                     status_text = "🚨 CRITICAL: Severe Vulnerability Identified"
+                elif ai_status == "HIGH_RISK":
+                    status_class = "status-critical"
+                    status_text = "⚠️ HIGH RISK: Major Security Flaw Detected"
                 elif ai_status == "WARNING":
                     status_class = "status-warning"
-                    status_text = "⚠️ WARNING: Code Smell / Risk Pattern Detected"
+                    status_text = "⚡ WARNING: Code Smell / Minor Anti-Pattern"
                 else:
                     status_class = "status-success"
                     status_text = "✨ CLEAN: Security Baseline Verified"
