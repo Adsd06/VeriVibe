@@ -1,8 +1,6 @@
 import os
-import json
 import time
 import streamlit as st
-from streamlit_lottie import st_lottie
 from dotenv import load_dotenv
 
 from filter_regex import scan_code
@@ -11,113 +9,316 @@ from filter_ai import get_mentorship_feedback
 load_dotenv()
 
 st.set_page_config(
-    page_title="VeriVibe | Enterprise Expertise Guardrail",
+    page_title="VeriVibe | Enterprise AI Mentorship",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Elite Custom CSS Injection to override Streamlit defaults
+# Modern UI CSS Overhaul
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
     
+    /* Global Page & Main Background */
     .stApp {
-        background-color: #F7F7F5 !important;
-        font-family: 'Inter', sans-serif !important;
-        color: #222222 !important;
-    }
-    
-    /* Global Typography */
-    h1, h2, h3, h4, h5, h6, p, span, label {
-        font-family: 'Inter', sans-serif !important;
-        color: #222222 !important;
+        background: #090D16 !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        color: #F3F4F6 !important;
     }
 
-    /* Header styling */
+    /* Style Upper Header Bar to Match Background */
+    header[data-testid="stHeader"] {
+        background-color: #090D16 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    /* Matching Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #0D1117 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    section[data-testid="stSidebar"] * {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+
+    /* HARD REMOVAL: Hide Raw Font Icon Text String (double_arrow_right) Completely */
+    button[data-testid="stSidebarCollapseButton"] *,
+    button[data-testid="stSidebarExpandButton"] *,
+    button[data-testid="stHeaderNavStateButton"] *,
+    div[data-testid="collapsedControl"] *,
+    button[data-testid="stBaseButton-headerNoPadding"] * {
+        font-size: 0 !important;
+        color: transparent !important;
+        display: none !important;
+    }
+
+    /* Style Header Toggle Button Container */
+    button[data-testid="stSidebarCollapseButton"], 
+    button[data-testid="stSidebarExpandButton"],
+    button[data-testid="stHeaderNavStateButton"],
+    div[data-testid="collapsedControl"] button,
+    button[data-testid="stBaseButton-headerNoPadding"] {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 8px !important;
+        padding: 6px 14px !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-top: 4px !important;
+        margin-left: 8px !important;
+    }
+    
+    /* Inject Clean 'Menu' Text */
+    button[data-testid="stSidebarCollapseButton"]::after,
+    button[data-testid="stSidebarExpandButton"]::after,
+    button[data-testid="stHeaderNavStateButton"]::after,
+    div[data-testid="collapsedControl"] button::after,
+    button[data-testid="stBaseButton-headerNoPadding"]::after {
+        content: "☰ Menu" !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        color: #A5B4FC !important;
+        display: inline-block !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+
+    button[data-testid="stSidebarCollapseButton"]:hover,
+    button[data-testid="stSidebarExpandButton"]:hover,
+    button[data-testid="stHeaderNavStateButton"]:hover,
+    div[data-testid="collapsedControl"] button:hover,
+    button[data-testid="stBaseButton-headerNoPadding"]:hover {
+        background: rgba(99, 102, 241, 0.2) !important;
+        border-color: #6366F1 !important;
+    }
+
+    /* Typography Override */
+    h1, h2, h3, h4, h5, h6, p, span, label {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+
+    /* Hide External Label Above Text Area */
+    div[data-testid="stTextArea"] label {
+        display: none !important;
+    }
+
+    /* Text Area & Inside Placeholder Styling */
+    textarea {
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.88rem !important;
+        background-color: #0D1117 !important;
+        color: #FFFFFF !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    textarea::placeholder {
+        color: #FFFFFF !important;
+        opacity: 0.9 !important;
+        font-weight: 500 !important;
+    }
+
+    textarea:focus {
+        border-color: #6366F1 !important;
+        box-shadow: 0 0 0 1px #6366F1 !important;
+    }
+
+    /* SVG Scanning Radar Animation */
+    .radar-container {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+    }
+    
+    .radar-sweep {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px solid rgba(99, 102, 241, 0.3);
+        background: conic-gradient(from 0deg, rgba(99, 102, 241, 0.4), transparent 60%);
+        animation: radar-spin 1.5s linear infinite;
+    }
+
+    .radar-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2rem;
+    }
+
+    @keyframes radar-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Hero Header & Title */
     .app-header {
-        padding: 1rem 0 0.5rem 0;
-        border-bottom: 1px solid #E5E5E0;
+        padding: 2.5rem 2.5rem;
+        background: radial-gradient(100% 100% at 0% 0%, rgba(99, 102, 241, 0.15) 0%, rgba(17, 24, 39, 0.4) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
         margin-bottom: 2rem;
+        backdrop-filter: blur(16px);
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .title-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: rgba(99, 102, 241, 0.2);
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        border-radius: 20px;
+        color: #818CF8;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
     }
     .app-title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        letter-spacing: -0.03em;
-        color: #111111;
+        font-size: 2.8rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.02em !important;
+        background: linear-gradient(135deg, #FFFFFF 0%, #A5B4FC 50%, #6366F1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin: 0;
+        line-height: 1.15;
     }
     .app-subtitle {
-        font-size: 0.95rem;
-        color: #666666;
-        margin-top: 4px;
+        font-size: 1.05rem;
+        color: #9CA3AF;
+        margin-top: 10px;
+        max-width: 750px;
+        line-height: 1.5;
     }
 
     /* Card Containers */
     .glass-card {
-        background-color: #FFFFFF;
-        border: 1px solid #E5E5E0;
+        background: rgba(17, 24, 39, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         padding: 24px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-        margin-bottom: 20px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s ease, border-color 0.2s ease;
+        color: #FFFFFF !important;
+    }
+    .glass-card * {
+        color: #FFFFFF !important;
+    }
+    .glass-card:hover {
+        border-color: rgba(99, 102, 241, 0.3);
     }
 
-    /* Badges */
-    .status-error {
-        background-color: #FDF2F2;
-        color: #9E2A2B;
-        padding: 8px 14px;
-        border-radius: 6px;
+    /* Dynamic Badges */
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 8px;
         font-weight: 600;
         font-size: 0.85rem;
-        border: 1px solid #F5C6CB;
-        margin-bottom: 14px;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        letter-spacing: 0.02em;
+    }
+    .status-critical {
+        background: rgba(239, 68, 68, 0.15);
+        color: #FCA5A5 !important;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+    .status-warning {
+        background: rgba(245, 158, 11, 0.15);
+        color: #FDE047 !important;
+        border: 1px solid rgba(245, 158, 11, 0.4);
     }
     .status-success {
-        background-color: #EBF4F0;
-        color: #2D7254;
-        padding: 8px 14px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        border: 1px solid #C3E6CB;
-        margin-bottom: 14px;
-        display: inline-block;
+        background: rgba(16, 185, 129, 0.15);
+        color: #6EE7B7 !important;
+        border: 1px solid rgba(16, 185, 129, 0.4);
     }
 
-    /* Custom Button Styling */
+    /* Metrics Grid Header */
+    .metric-container {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .metric-box {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 12px 16px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    .metric-val {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #6366F1 !important;
+    }
+    .metric-lbl {
+        font-size: 0.75rem;
+        color: #9CA3AF !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Button Customization */
     .stButton>button {
-        background-color: #B5A48B !important;
-        color: white !important;
+        background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%) !important;
+        color: #FFFFFF !important;
         font-weight: 600 !important;
         border: none !important;
-        border-radius: 8px !important;
-        padding: 10px 24px !important;
-        width: 100%;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 6px rgba(181, 164, 139, 0.3);
+        border-radius: 10px !important;
+        padding: 12px 24px !important;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+        transition: all 0.2s ease-in-out !important;
     }
     .stButton>button:hover {
-        background-color: #9C8C73 !important;
-        box-shadow: 0 4px 12px rgba(156, 140, 115, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5) !important;
     }
 
-    /* Text area refinement */
-    textarea {
-        border-radius: 8px !important;
-        border-color: #E5E5E0 !important;
-        background-color: #FAFAFA !important;
+    /* Tabs Styling - Forced Pure White Titles Across Active & Inactive States */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 8px;
+        padding: 8px 16px;
+        background-color: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .stTabs [data-baseweb="tab"] * {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        opacity: 1 !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: rgba(99, 102, 241, 0.2) !important;
+        border-color: #6366F1 !important;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #090D16;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #1F2937;
+        border-radius: 4px;
     }
     </style>
 """, unsafe_allow_html=True)
-
-def load_lottiefile(filepath):
-    if os.path.exists(filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return None
 
 def load_samples():
     filepath = os.path.join(os.path.dirname(__file__), 'References', 'code_samples.txt')
@@ -134,49 +335,56 @@ def load_samples():
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("### **VeriVibe Control**")
-    st.markdown("<p style='color: #666666; font-size: 0.85rem;'>Closing the technical expertise gap.</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; color: #FFFFFF;'>🛡️ VeriVibe Control</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #9CA3AF; font-size: 0.85rem;'>Bridge the tech expertise gap automatically.</p>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
     
     samples_dict = load_samples()
-    selected_sample = st.selectbox("Load Test Scenario:", list(samples_dict.keys()))
+    selected_sample = st.selectbox("Select Test Scenario:", list(samples_dict.keys()))
     
-    st.markdown("---")
-    st.markdown("#### **Architecture Overview**")
+    st.markdown("<br><hr style='border-color: rgba(255,255,255,0.08);'><br>", unsafe_allow_html=True)
+    st.markdown("<h4 style='font-size: 0.9rem; letter-spacing: 0.05em; color: #9CA3AF;'>ENGINE PIPELINE</h4>", unsafe_allow_html=True)
     st.markdown("""
-    <p style='color: #666666; font-size: 0.8rem; line-height: 1.4;'>
-    <b>Stage 1:</b> Local Regex Guardrail<br>
-    <b>Stage 2:</b> GPT-OSS-120B Neural Mentorship
-    </p>
+    <div style='background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.82rem; color: #D1D5DB;'>
+        <p style='margin-bottom: 6px;'><b>⚡ Stage 1:</b> Local AST & Regex Guard</p>
+        <p style='margin: 0;'><b>🧠 Stage 2:</b> GPT-OSS Neural Mentorship</p>
+    </div>
     """, unsafe_allow_html=True)
 
-if "code_input" not in st.session_state or st.session_state.get('last_sample') != selected_sample:
-    st.session_state['code_input'] = samples_dict[selected_sample]
-    st.session_state['last_sample'] = selected_sample
+# --- SAFE SESSION STATE INITIALIZATION ---
+if "last_sample" not in st.session_state:
+    st.session_state["last_sample"] = selected_sample
 
-# --- MAIN APP HEADER ---
+if "code_input" not in st.session_state or st.session_state.get("last_sample") != selected_sample:
+    st.session_state["code_input"] = samples_dict[selected_sample]
+    st.session_state["last_sample"] = selected_sample
+
+# --- ENHANCED MAIN APP HEADER ---
 st.markdown("""
 <div class="app-header">
+    <span class="title-badge">🛡️ Enterprise Code Intelligence</span>
     <p class="app-title">VeriVibe Mentorship Platform</p>
-    <p class="app-subtitle">Translate raw code vulnerabilities and complex errors into clear, actionable guidance.</p>
+    <p class="app-subtitle">Identify vulnerabilities, decode complex tracebacks, and receive real-time actionable code improvements through AI mentorship.</p>
 </div>
 """, unsafe_allow_html=True)
 
 # Split Workspace Layout
-col1, col2 = st.columns([1, 1], gap="large")
+col1, col2 = st.columns([1.1, 0.9], gap="large")
 
 with col1:
-    st.markdown("#### **Code Workspace**")
+    st.markdown("<h4 style='font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: #FFFFFF;'>💻 Code Workspace</h4>", unsafe_allow_html=True)
     code = st.text_area(
-        "Paste your code or configuration snippet:",
+        label="Code Input Area",
         value=st.session_state['code_input'],
-        height=340,
+        placeholder="Paste your code snippet here...",
+        height=380,
         key="editor"
     )
-    st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
-    analyze_clicked = st.button("Run Security & Mentorship Audit")
+    st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
+    analyze_clicked = st.button("🚀 Run Security & Mentorship Audit", use_container_width=True)
 
 with col2:
-    st.markdown("#### **Real-Time Mentorship Output**")
+    st.markdown("<h4 style='font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: #FFFFFF;'>🧠 Real-Time Insights</h4>", unsafe_allow_html=True)
     feedback_container = st.empty()
     
     if analyze_clicked:
@@ -184,18 +392,21 @@ with col2:
             feedback_container.warning("Please provide a valid code snippet to evaluate.")
         else:
             with feedback_container.container():
-                st.markdown("<div class='glass-card' style='text-align: center; padding: 40px;'>", unsafe_allow_html=True)
-                lottie_data = load_lottiefile("marketing.json")
-                if lottie_data:
-                    st_lottie(lottie_data, speed=1, height=120, key="loading")
-                st.markdown("<p style='color: #666666; margin-top: 12px; font-size: 0.9rem;'>Running local AST scan & querying neural mentor...</p>", unsafe_allow_html=True)
-                st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown("""
+                <div class='glass-card' style='text-align: center; padding: 40px 20px;'>
+                    <div class='radar-container'>
+                        <div class='radar-sweep'></div>
+                        <div class='radar-icon'>🔍</div>
+                    </div>
+                    <p style='color: #9CA3AF !important; margin-top: 16px; font-size: 0.9rem;'>Running local AST scan & querying neural mentor...</p>
+                </div>
+                """, unsafe_allow_html=True)
             
             violations = scan_code(code)
-            time.sleep(1.2)  # Smooth transition for animation
+            time.sleep(1.0)  
             mentorship_response = get_mentorship_feedback(code, violations)
             
-            # Parse out the AI status tag
+            # Parse AI status tag
             ai_status = "CLEAN"
             clean_response = mentorship_response
             if "STATUS:" in mentorship_response:
@@ -203,9 +414,7 @@ with col2:
                 status_line = lines[0].strip()
                 if "CRITICAL" in status_line:
                     ai_status = "CRITICAL"
-                elif "HIGH_RISK" in status_line:
-                    ai_status = "HIGH_RISK"
-                elif "WARNING" in status_line:
+                elif "HIGH_RISK" in status_line or "WARNING" in status_line:
                     ai_status = "WARNING"
                 else:
                     ai_status = "CLEAN"
@@ -217,28 +426,57 @@ with col2:
             
             with feedback_container.container():
                 if ai_status == "CRITICAL":
-                    status_class = "status-error"
-                    status_text = "🚨 CRITICAL: Severe Security Vulnerability Detected"
-                elif ai_status == "HIGH_RISK":
-                    status_class = "status-error"
-                    status_text = "⚠️ HIGH RISK: Vulnerability Pattern Identified by AI"
+                    status_class = "status-critical"
+                    status_text = "🚨 CRITICAL: Severe Vulnerability Identified"
                 elif ai_status == "WARNING":
-                    status_class = "status-error"
-                    status_text = "⚡ WARNING: Potential Security Code Smell"
+                    status_class = "status-warning"
+                    status_text = "⚠️ WARNING: Code Smell / Risk Pattern Detected"
                 else:
                     status_class = "status-success"
-                    status_text = "✨ AI Mentor: Clean Baseline Verified"
+                    status_text = "✨ CLEAN: Security Baseline Verified"
                 
+                # Dynamic Metric Summary Grid
                 st.markdown(f"""
-                <div class='glass-card'>
-                    <div><span class='{status_class}'>{status_text}</span></div>
+                <div class='metric-container'>
+                    <div class='metric-box'>
+                        <div class='metric-val'>{len(violations)}</div>
+                        <div class='metric-lbl'>Local Violations</div>
+                    </div>
+                    <div class='metric-box'>
+                        <div class='metric-val'>{len(code.splitlines())}</div>
+                        <div class='metric-lbl'>Lines Scanned</div>
+                    </div>
+                    <div class='metric-box'>
+                        <div class='metric-val'>{ai_status}</div>
+                        <div class='metric-lbl'>AI Risk Level</div>
+                    </div>
+                </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown(clean_response)
-                st.markdown("</div>", unsafe_allow_html=True)
+                # Tabbed Output Container
+                tab1, tab2 = st.tabs(["💬 Mentor Feedback", "🔍 Detected Patterns"])
+                
+                with tab1:
+                    st.markdown(f"""
+                    <div class='glass-card'>
+                        <div><span class='status-badge {status_class}'>{status_text}</span></div>
+                    """, unsafe_allow_html=True)
+                    st.markdown(clean_response)
+                    st.markdown("</div>", unsafe_allow_html=True)
+                    
+                with tab2:
+                    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+                    if violations:
+                        st.markdown("**Rule Engine Flags:**")
+                        for v in violations:
+                            st.error(f"• {v}")
+                    else:
+                        st.info("No static rule violations triggered by regex scan.")
+                    st.markdown("</div>", unsafe_allow_html=True)
     else:
         feedback_container.markdown("""
-        <div class='glass-card' style='text-align: center; padding: 70px 20px;'>
-            <p style='color: #888888; font-size: 0.95rem;'>Awaiting code submission for evaluation...</p>
+        <div class='glass-card' style='text-align: center; padding: 90px 20px;'>
+            <div style='font-size: 2.5rem; margin-bottom: 12px;'>🛡️</div>
+            <p style='color: #FFFFFF !important; font-size: 0.95rem; margin: 0;'>Awaiting code submission for security evaluation...</p>
         </div>
         """, unsafe_allow_html=True)
