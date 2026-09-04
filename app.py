@@ -39,70 +39,123 @@ st.markdown("""
         border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
 
-    section[data-testid="stSidebar"] * {
+    section[data-testid="stSidebar"] *:not([data-testid^="stIcon"]):not([class*="material" i]) {
         font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
-    /* HARD REMOVAL: Hide Raw Font Icon Text String (double_arrow_right) Completely */
-    button[data-testid="stSidebarCollapseButton"] *,
-    button[data-testid="stSidebarExpandButton"] *,
-    button[data-testid="stHeaderNavStateButton"] *,
-    div[data-testid="collapsedControl"] *,
-    button[data-testid="stBaseButton-headerNoPadding"] * {
-        font-size: 0 !important;
-        color: transparent !important;
-        display: none !important;
+    /* The sidebar toggle control (collapse/expand) is intentionally left
+       unstyled here. It's rendered natively by Streamlit as an icon
+       button, and the only thing that was ever wrong with it was our own
+       CSS overriding the icon font it depends on (fixed in the
+       Typography Override rule below) or, previously, us fighting its
+       internals with padding/background overrides that broke across
+       Streamlit versions. Its default appearance already fits a dark
+       theme fine. */
+
+    /* Typography Override -- excludes anything that looks like an icon
+       element (data-testid starting with "stIcon", or a class containing
+       "material"), since Streamlit's icons are ligatures (e.g. the
+       literal text "keyboard_double_arrow_right") that only render as a
+       glyph when their own Material Symbols font is left alone. Matching
+       by pattern rather than one exact testid guards against Streamlit
+       versions using slightly different internal naming. */
+    h1, h2, h3, h4, h5, h6, p,
+    span:not([data-testid^="stIcon"]):not([class*="material" i]),
+    label:not([data-testid^="stIcon"]):not([class*="material" i]) {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
-    /* Style Header Toggle Button Container */
-    button[data-testid="stSidebarCollapseButton"], 
-    button[data-testid="stSidebarExpandButton"],
-    button[data-testid="stHeaderNavStateButton"],
-    div[data-testid="collapsedControl"] button,
-    button[data-testid="stBaseButton-headerNoPadding"] {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    /* Safety net: explicitly restore the icon font on anything matching
+       an icon pattern, in case another rule elsewhere still catches it. */
+    [data-testid^="stIcon"],
+    [class*="material" i] {
+        font-family: 'Material Symbols Outlined', 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
+    }
+
+    /* Sidebar toggle (collapse/expand) icon -- colored dark so it's
+       readable against the white button background below. Only color is
+       set here; font-family is deliberately left alone (see above).
+       Covers both current ("stSidebarCollapsedControl"/
+       "stSidebarCollapseButton") and legacy ("collapsedControl") testids,
+       since the floating outside-the-sidebar control and the inside one
+       aren't guaranteed to use the same naming. */
+    [data-testid="stSidebarCollapsedControl"] [data-testid^="stIcon"],
+    [data-testid="stSidebarCollapseButton"] [data-testid^="stIcon"],
+    [data-testid="collapsedControl"] [data-testid^="stIcon"],
+    [data-testid="collapsedControl"] svg {
+        color: #090D16 !important;
+        fill: #090D16 !important;
+    }
+
+    /* Force the toggle button to always stay visible. By default
+       Streamlit fades this button to opacity 0 and only shows it on
+       hover of the sidebar header -- overriding that so it doesn't
+       disappear when the mouse moves away. */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"] button,
+    [data-testid="stSidebarCollapseButton"] button,
+    [data-testid="collapsedControl"] button {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    /* Give the toggle button itself a solid white background so it's
+       clearly visible and easy to spot against the dark page. Applied
+       to both the testid element itself and any nested <button>, since
+       different Streamlit versions structure this differently -- in
+       some, the testid element IS the clickable button; in others, it's
+       a wrapper around one. */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"] button,
+    [data-testid="stSidebarCollapseButton"] button,
+    [data-testid="collapsedControl"] button {
+        background: #FFFFFF !important;
         border-radius: 8px !important;
-        padding: 6px 14px !important;
-        transition: all 0.2s ease !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        margin-top: 4px !important;
-        margin-left: 8px !important;
-    }
-    
-    /* Inject Clean 'Menu' Text */
-    button[data-testid="stSidebarCollapseButton"]::after,
-    button[data-testid="stSidebarExpandButton"]::after,
-    button[data-testid="stHeaderNavStateButton"]::after,
-    div[data-testid="collapsedControl"] button::after,
-    button[data-testid="stBaseButton-headerNoPadding"]::after {
-        content: "☰ Menu" !important;
-        font-size: 0.85rem !important;
-        font-weight: 600 !important;
-        color: #A5B4FC !important;
-        display: inline-block !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
-    button[data-testid="stSidebarCollapseButton"]:hover,
-    button[data-testid="stSidebarExpandButton"]:hover,
-    button[data-testid="stHeaderNavStateButton"]:hover,
-    div[data-testid="collapsedControl"] button:hover,
-    button[data-testid="stBaseButton-headerNoPadding"]:hover {
-        background: rgba(99, 102, 241, 0.2) !important;
-        border-color: #6366F1 !important;
+    [data-testid="stSidebarCollapsedControl"]:hover,
+    [data-testid="stSidebarCollapseButton"]:hover,
+    [data-testid="collapsedControl"]:hover,
+    [data-testid="stSidebarCollapsedControl"] button:hover,
+    [data-testid="stSidebarCollapseButton"] button:hover,
+    [data-testid="collapsedControl"] button:hover {
+        background: #E5E7EB !important;
     }
 
-    /* Typography Override */
-    h1, h2, h3, h4, h5, h6, p, span, label {
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    /* Fallback: the toggle button is always the leftmost control in the
+       app header. This catches it even if this Streamlit version uses a
+       testid we haven't accounted for above. */
+    header[data-testid="stHeader"] button:first-of-type {
+        background: #FFFFFF !important;
+        border-radius: 8px !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    header[data-testid="stHeader"] button:first-of-type [data-testid^="stIcon"],
+    header[data-testid="stHeader"] button:first-of-type svg {
+        color: #090D16 !important;
+        fill: #090D16 !important;
+    }
+
+    header[data-testid="stHeader"] button:first-of-type:hover {
+        background: #E5E7EB !important;
     }
 
     /* Hide External Label Above Text Area */
     div[data-testid="stTextArea"] label {
         display: none !important;
+    }
+
+    /* Sidebar "Select Test Scenario:" label -- Streamlit's default dim
+       gray is hard to read against the dark sidebar background. */
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label,
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label p {
+        color: #FFFFFF !important;
     }
 
     /* Text Area & Inside Placeholder Styling */
@@ -285,22 +338,34 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5) !important;
     }
 
-    /* Tabs Styling - Forced Pure White Titles Across Active & Inactive States */
-    .stTabs [data-baseweb="tab-list"] {
+    /* Tabs Styling - Force Pure White on Inactive & Active Tabs.
+       Anchored on [role="tab"] / [aria-selected] (standard ARIA
+       attributes guaranteed by any tab implementation) rather than
+       Streamlit-internal naming like "data-baseweb", which may not
+       match the actual markup in this version. */
+    .stTabs [role="tablist"] {
         gap: 8px;
     }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
-        padding: 8px 16px;
-        background-color: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+    .stTabs [role="tab"] {
+        border-radius: 8px !important;
+        padding: 8px 16px !important;
+        background-color: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
-    .stTabs [data-baseweb="tab"] * {
+    .stTabs [role="tab"],
+    .stTabs [role="tab"] * {
         color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
         font-weight: 600 !important;
         opacity: 1 !important;
     }
-    .stTabs [aria-selected="true"] {
+    .stTabs [role="tab"][aria-selected="false"],
+    .stTabs [role="tab"][aria-selected="false"] * {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+    .stTabs [role="tab"][aria-selected="true"] {
         background-color: rgba(99, 102, 241, 0.2) !important;
         border-color: #6366F1 !important;
     }
